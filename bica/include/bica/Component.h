@@ -45,38 +45,27 @@
 #ifndef BICA_COMPONENT_H
 #define BICA_COMPONENT_H
 
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <ros/service_callback_helper.h>
-
-#include <std_srvs/Empty.h>
-#include <signal.h>
-#include <ros/xmlrpc_manager.h>
-
-#include <bica/Dependency.h>
 #include <bica/Activation.h>
-
+#include <bica/Dependency.h>
+#include <ros/console.h>
+#include <ros/ros.h>
+#include <ros/service_callback_helper.h>
+#include <ros/xmlrpc_manager.h>
+#include <signal.h>
 #include <std_msgs/Empty.h>
+#include <std_srvs/Empty.h>
 
-#include <string>
 #include <list>
+#include <string>
 
-namespace bica
-{
-class Component
-{
+namespace bica {
+class Component {
 public:
   Component();
   virtual ~Component();
 
-  void setRoot()
-  {
-    root_ = true;
-  }
-  bool isActive()
-  {
-    return active_;
-  };
+  void setRoot() { root_ = true; }
+  bool isActive() { return active_; };
   void setActive(bool act = true);
 
   virtual void step() {}
@@ -102,8 +91,10 @@ protected:
   ros::Publisher alive_pub_;
 
 private:
-  bool activateCallback(ros::ServiceEvent<std_srvs::Empty::Request, std_srvs::Empty::Response>& call);
-  bool deActivateCallback(ros::ServiceEvent<std_srvs::Empty::Request, std_srvs::Empty::Response>& call);
+  bool activateCallback(
+      ros::ServiceEvent<std_srvs::Empty::Request, std_srvs::Empty::Response>& call);
+  bool deActivateCallback(
+      ros::ServiceEvent<std_srvs::Empty::Request, std_srvs::Empty::Response>& call);
   void activateDependencies();
   void deActivateDependencies();
   void printStatus();

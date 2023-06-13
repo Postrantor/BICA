@@ -5,48 +5,38 @@
  *      Author: paco
  */
 
-#include <ros/ros.h>
-#include <ros/console.h>
-
 #include <bica/Component.h>
+#include <ros/console.h>
+#include <ros/ros.h>
 
-class TestA: public bica::Component
-{
+class TestA : public bica::Component {
 public:
-	TestA()
-	{
+  TestA() {
     addDependency("node_B");
     addDependency("node_C");
-	}
+  }
 
-	~TestA()
-	{
-	}
+  ~TestA() {}
 
-	void step()
-	{
-		if (!isActive()) return;
+  void step() {
+    if (!isActive()) return;
 
-		ROS_INFO("[%s] step", ros::this_node::getName().c_str());
-	}
-
+    ROS_INFO("[%s] step", ros::this_node::getName().c_str());
+  }
 };
 
-int main(int argc, char** argv)
-{
-	ros::init(argc, argv, "node_A");
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "node_A");
 
-	TestA test_a;
+  TestA test_a;
 
-	ros::Rate loop_rate(7);
-	while(test_a.ok())
-	{
-		test_a.step();
+  ros::Rate loop_rate(7);
+  while (test_a.ok()) {
+    test_a.step();
 
-		ros::spinOnce();
-		loop_rate.sleep();
-	}
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
 
-
-	return 0;
+  return 0;
 }

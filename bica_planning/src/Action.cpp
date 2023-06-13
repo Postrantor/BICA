@@ -39,20 +39,14 @@
 
 #include <string>
 
-namespace bica_planning
-{
-Action::Action(std::string id, float freq) : id_(id), freq_(freq)
-{
-  setRoot();
-}
+namespace bica_planning {
+Action::Action(std::string id, float freq) : id_(id), freq_(freq) { setRoot(); }
 
-bool Action::concreteCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg)
-{
+bool Action::concreteCallback(const rosplan_dispatch_msgs::ActionDispatch::ConstPtr& msg) {
   finished_ = false;
   success_ = true;
   last_msg_ = *msg;
-  if (!checkAtStartConditions(msg))
-  {
+  if (!checkAtStartConditions(msg)) {
     ROS_ERROR("[%s] AT Start not meet: cancelling", id_.c_str());
     return false;
   }
@@ -60,10 +54,8 @@ bool Action::concreteCallback(const rosplan_dispatch_msgs::ActionDispatch::Const
   bool ret = true;
   bool finished = false;
   ros::Rate rate(freq_);
-  do
-  {
-    if (!checkOverAllConditions(msg))
-    {
+  do {
+    if (!checkOverAllConditions(msg)) {
       ROS_ERROR("ALL OVER not meet: cancelling");
       setFail();
     }
@@ -74,14 +66,12 @@ bool Action::concreteCallback(const rosplan_dispatch_msgs::ActionDispatch::Const
 
   setActive(false);
 
-  if (success_ && !checkAtEndConditions(msg))
-  {
+  if (success_ && !checkAtEndConditions(msg)) {
     ROS_ERROR("[%s] AT End not meet: cancelling", id_.c_str());
     return false;
   }
 
-  if (success_)
-  {
+  if (success_) {
     ROS_INFO("Action achieved ====================");
   }
   return success_;

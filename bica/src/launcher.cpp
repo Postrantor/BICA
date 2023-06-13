@@ -42,42 +42,32 @@
  *      Author: paco
  */
 
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <std_srvs/Empty.h>
-
 #include <bica/Component.h>
+#include <ros/console.h>
+#include <ros/ros.h>
+#include <std_srvs/Empty.h>
 
 #include <random>
 #include <string>
 
-class Launcher : public bica::Component
-{
+class Launcher : public bica::Component {
 public:
-  explicit Launcher(std::string dep) : nh_("~")
-  {
-    addDependency(dep);
-  }
+  explicit Launcher(std::string dep) : nh_("~") { addDependency(dep); }
 
-  void step()
-  {
-    ROS_INFO("launcher::step");
-  }
+  void step() { ROS_INFO("launcher::step"); }
 
 private:
   ros::NodeHandle nh_;
 };
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   srand(time(NULL));
   unsigned int seed = time(NULL);
 
   ros::init(argc, argv, "launcher" + std::to_string(rand_r(&seed) % 1000));
   ros::NodeHandle nh;
 
-  if (argc < 2)
-  {
+  if (argc < 2) {
     ROS_ERROR("Usage: launcher component");
     return 1;
   }
@@ -92,8 +82,7 @@ int main(int argc, char** argv)
 
   ros::Rate loop_rate(5);
 
-  while (launch_comp.ok())
-  {
+  while (launch_comp.ok()) {
     ros::spinOnce();
     loop_rate.sleep();
   }

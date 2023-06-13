@@ -46,16 +46,14 @@
 #define BICA_ACTIVATION_H
 
 #include <ros/ros.h>
-#include <string>
-
 #include <std_msgs/Empty.h>
+
+#include <string>
 
 #define DEAD_T 1.5
 
-namespace bica
-{
-class Activation
-{
+namespace bica {
+class Activation {
 public:
   Activation();
   Activation(std::string id_i, bool active_i, bool alive_i = true);
@@ -64,10 +62,7 @@ public:
 
   void checkAlive();
 
-  bool operator==(const Activation& other)
-  {
-    return id == other.id;
-  };
+  bool operator==(const Activation& other) { return id == other.id; };
 
   void activeCB(const std_msgs::Empty::ConstPtr& msg);
 

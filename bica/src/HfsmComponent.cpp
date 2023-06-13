@@ -44,15 +44,12 @@
 
 #include "HfsmComponent.h"
 
-namespace bica
-{
-HfsmComponent::HfsmComponent()
-{
+namespace bica {
+HfsmComponent::HfsmComponent() {
   // TODO(fmrico): Auto-generated constructor stub
 }
 
-HfsmComponent::~HfsmComponent()
-{
+HfsmComponent::~HfsmComponent() {
   // TODO(fmrico): Auto-generated destructor stub
 }
 
