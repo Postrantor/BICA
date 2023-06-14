@@ -16,43 +16,28 @@
 
 #include "bica/Component.hpp"
 #include "bica_graph/TypedGraphNode.hpp"
-
 #include "rclcpp/rclcpp.hpp"
 
-class CompA : public bica::Component
-{
+class CompA : public bica::Component {
 public:
-  CompA()
-  : bica::Component("A", 1)
-  {
+  CompA() : bica::Component("A", 1) {
     addDependency("B");
     addDependency("C");
 
     graph_ = std::make_shared<bica_graph::TypedGraphNode>(get_name());
   }
 
-  void on_activate()
-  {
-    graph_->add_node(bica_graph::Node{get_name(), "component"});
-  }
+  void on_activate() { graph_->add_node(bica_graph::Node{get_name(), "component"}); }
 
-  void on_deactivate()
-  {
-    graph_->remove_node(get_name());
-  }
+  void on_deactivate() { graph_->remove_node(get_name()); }
 
-  void step()
-  {
-    RCLCPP_INFO(get_logger(), "CompA::step()");
-  }
+  void step() { RCLCPP_INFO(get_logger(), "CompA::step()"); }
 
 private:
   std::shared_ptr<bica_graph::TypedGraphNode> graph_;
 };
 
-
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto component = std::make_shared<CompA>();

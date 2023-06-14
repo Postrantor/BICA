@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "bica_graph/Types.hpp"
+
 #include <string>
 #include <vector>
 
-#include "bica_graph/Types.hpp"
+namespace bica_graph {
 
-namespace bica_graph
-{
-
-std::vector<std::string> tokenize(const std::string & text, const std::string & delim)
-{
+std::vector<std::string> tokenize(const std::string& text, const std::string& delim) {
   std::vector<std::string> ret;
   size_t start = 0, end = 0;
 
@@ -32,13 +30,11 @@ std::vector<std::string> tokenize(const std::string & text, const std::string & 
   }
   return ret;
 }
-bool operator==(const Node & op1, const Node & op2)
-{
+bool operator==(const Node& op1, const Node& op2) {
   return op1.name == op2.name && op1.type == op2.type;
 }
 
-bool operator==(const Edge & op1, const Edge & op2)
-{
+bool operator==(const Edge& op1, const Edge& op2) {
   return op1.content == op2.content && op1.type == op2.type;
 }
 

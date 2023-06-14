@@ -15,20 +15,18 @@
 #ifndef BICA_BEHAVIOR_TREE__CONTROL__ACTIVATION_SEQUENCE_HPP_
 #define BICA_BEHAVIOR_TREE__CONTROL__ACTIVATION_SEQUENCE_HPP_
 
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
-#include "behaviortree_cpp_v3/control_node.h"
 #include "behaviortree_cpp_v3/bt_factory.h"
+#include "behaviortree_cpp_v3/control_node.h"
 
-namespace bica_behavior_tree
-{
+namespace bica_behavior_tree {
 
-class ActivationSequenceNode : public BT::ControlNode
-{
+class ActivationSequenceNode : public BT::ControlNode {
 public:
-  explicit ActivationSequenceNode(const std::string & name);
+  explicit ActivationSequenceNode(const std::string& name);
   ~ActivationSequenceNode() override = default;
 
   void reset();

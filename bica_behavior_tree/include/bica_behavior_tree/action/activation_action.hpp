@@ -15,31 +15,24 @@
 #ifndef BICA_BEHAVIOR_TREE__ACTION__ACTIVATION_ACTION_HPP_
 #define BICA_BEHAVIOR_TREE__ACTION__ACTIVATION_ACTION_HPP_
 
-
-#include <stdexcept>
-#include <sstream>
-#include <string>
 #include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
+#include "behaviortree_cpp_v3/bt_factory.h"
+#include "behaviortree_cpp_v3/control_node.h"
 #include "bica/Component.hpp"
 
-#include "behaviortree_cpp_v3/control_node.h"
-#include "behaviortree_cpp_v3/bt_factory.h"
+namespace bica_behavior_tree {
 
-namespace bica_behavior_tree
-{
-
-class ActivationActionNode : public BT::ActionNodeBase
-{
+class ActivationActionNode : public BT::ActionNodeBase {
 public:
-  explicit ActivationActionNode(const std::string & name);
+  explicit ActivationActionNode(const std::string& name);
 
-  void init(bica::Component * component, std::set<std::string> activations);
+  void init(bica::Component* component, std::set<std::string> activations);
 
-  void halt() final
-  {
-    setStatus(BT::NodeStatus::IDLE);
-  }
+  void halt() final { setStatus(BT::NodeStatus::IDLE); }
 
   virtual BT::NodeStatus onStart();
   virtual BT::NodeStatus onStop();
@@ -49,7 +42,7 @@ public:
 protected:
   BT::NodeStatus previous_status_;
 
-  bica::Component * component_;
+  bica::Component* component_;
   std::set<std::string> activations_;
 };
 

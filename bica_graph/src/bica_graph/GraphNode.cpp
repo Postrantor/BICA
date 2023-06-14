@@ -12,27 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "bica_graph/GraphNode.hpp"
+
+#include <algorithm>
 #include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
 #include <list>
 #include <map>
-#include <algorithm>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <utility>
 #include <vector>
-
-#include "bica_graph/GraphNode.hpp"
 
 #include "bica_msgs/msg/graph_update.hpp"
 
+namespace bica_graph {
 
-namespace bica_graph
-{
-
-GraphNode::GraphNode(const std::string & provided_node_name)
-: seq_(0)
-{
+GraphNode::GraphNode(const std::string &provided_node_name) : seq_(0) {
   std::cerr << "GraphNode::GraphNode start" << std::endl;
   node_ = std::make_shared<rclcpp::Node>(provided_node_name + "_graph");
   sync_node_ = std::make_shared<rclcpp::Node>(provided_node_name + "_graph_sync");
@@ -42,17 +38,17 @@ GraphNode::GraphNode(const std::string & provided_node_name)
 
   using namespace std::placeholders;
   update_pub_ = node_->create_publisher<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates", rclcpp::QoS(1000).reliable());
+      "/graph_updates", rclcpp::QoS(1000).reliable());
   sync_update_pub_ = sync_node_->create_publisher<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates_sync", rclcpp::QoS(1000).reliable());
+      "/graph_updates_sync", rclcpp::QoS(1000).reliable());
 
   update_sub_ = node_->create_subscription<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates", rclcpp::QoS(1000).reliable(),
-    std::bind(&GraphNode::update_callback, this, _1));
+      "/graph_updates", rclcpp::QoS(1000).reliable(),
+      std::bind(&GraphNode::update_callback, this, _1));
 
   sync_update_sub_ = sync_node_->create_subscription<bica_msgs::msg::GraphUpdate>(
-    "/graph_updates_sync", rclcpp::QoS(1000).reliable(),
-    std::bind(&GraphNode::sync_update_callback, this, _1));
+      "/graph_updates_sync", rclcpp::QoS(1000).reliable(),
+      std::bind(&GraphNode::sync_update_callback, this, _1));
 
   if (!initialized_) {
     bica_msgs::msg::GraphUpdate msg;
@@ -65,15 +61,11 @@ GraphNode::GraphNode(const std::string & provided_node_name)
     sync_update_pub_->publish(msg);
   }
 
-  sync_spin_t_ = std::thread([this] {
-        rclcpp::spin(this->sync_node_);
-      });
+  sync_spin_t_ = std::thread([this] { rclcpp::spin(this->sync_node_); });
   sync_spin_t_.detach();
 }
 
-void
-GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
-{
+void GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg) {
   auto update = *msg;
 
   if (update.operation_type == bica_msgs::msg::GraphUpdate::REQSYNC) {
@@ -99,9 +91,7 @@ GraphNode::sync_update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg
   }
 }
 
-void
-GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
-{
+void GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg) {
   auto update = *msg;
   last_ts_ = rclcpp::Time(update.stamp);
 
@@ -137,9 +127,7 @@ GraphNode::update_callback(const bica_msgs::msg::GraphUpdate::SharedPtr msg)
   }
 }
 
-bool
-GraphNode::add_node(const Node & node)
-{
+bool GraphNode::add_node(const Node &node) {
   rclcpp::spin_some(node_);
 
   if (!initialized_) {
@@ -165,9 +153,7 @@ GraphNode::add_node(const Node & node)
   }
 }
 
-bool
-GraphNode::remove_node(const std::string node)
-{
+bool GraphNode::remove_node(const std::string node) {
   rclcpp::spin_some(node_);
 
   if (!initialized_) {
@@ -193,23 +179,17 @@ GraphNode::remove_node(const std::string node)
   }
 }
 
-bool
-GraphNode::exist_node(const std::string node)
-{
+bool GraphNode::exist_node(const std::string node) {
   rclcpp::spin_some(node_);
   return graph_.exist_node(node);
 }
 
-boost::optional<Node>
-GraphNode::get_node(const std::string node)
-{
+boost::optional<Node> GraphNode::get_node(const std::string node) {
   rclcpp::spin_some(node_);
   return graph_.get_node(node);
 }
 
-bool
-GraphNode::add_edge(const Edge & edge)
-{
+bool GraphNode::add_edge(const Edge &edge) {
   rclcpp::spin_some(node_);
   if (graph_.add_edge(edge)) {
     seq_++;
@@ -230,9 +210,7 @@ GraphNode::add_edge(const Edge & edge)
   }
 }
 
-bool
-GraphNode::remove_edge(const Edge & edge)
-{
+bool GraphNode::remove_edge(const Edge &edge) {
   rclcpp::spin_some(node_);
   if (graph_.remove_edge(edge)) {
     seq_++;
@@ -253,91 +231,63 @@ GraphNode::remove_edge(const Edge & edge)
   }
 }
 
-bool
-GraphNode::exist_edge(const Edge & edge)
-{
+bool GraphNode::exist_edge(const Edge &edge) {
   rclcpp::spin_some(node_);
   return graph_.exist_edge(edge);
 }
 
-boost::optional<std::vector<Edge> *>
-GraphNode::get_edges(const std::string & source, const std::string & target)
-{
+boost::optional<std::vector<Edge> *> GraphNode::get_edges(
+    const std::string &source, const std::string &target) {
   rclcpp::spin_some(node_);
   return graph_.get_edges(source, target);
 }
 
-std::string
-GraphNode::to_string() const
-{
+std::string GraphNode::to_string() const {
   rclcpp::spin_some(node_);
   return graph_.to_string();
 }
 
-void
-GraphNode::from_string(const std::string & graph_str)
-{
-  graph_.from_string(graph_str);
-}
+void GraphNode::from_string(const std::string &graph_str) { graph_.from_string(graph_str); }
 
-size_t
-GraphNode::get_num_edges() const
-{
+size_t GraphNode::get_num_edges() const {
   rclcpp::spin_some(node_);
   return graph_.get_num_edges();
 }
 
-size_t
-GraphNode::get_num_nodes() const
-{
+size_t GraphNode::get_num_nodes() const {
   rclcpp::spin_some(node_);
   return graph_.get_num_nodes();
 }
 
-const std::map<std::string, Node> &
-GraphNode::get_nodes()
-{
+const std::map<std::string, Node> &GraphNode::get_nodes() {
   rclcpp::spin_some(node_);
   return graph_.get_nodes();
 }
 
-const std::map<ConnectionT, std::vector<Edge>> &
-GraphNode::get_edges()
-{
+const std::map<ConnectionT, std::vector<Edge>> &GraphNode::get_edges() {
   rclcpp::spin_some(node_);
   return graph_.get_edges();
 }
 
-std::vector<std::string>
-GraphNode::get_node_names_by_id(const std::string & expr)
-{
+std::vector<std::string> GraphNode::get_node_names_by_id(const std::string &expr) {
   return graph_.get_node_names_by_id(expr);
 }
 
-std::vector<std::string>
-GraphNode::get_node_names_by_type(const std::string & type)
-{
+std::vector<std::string> GraphNode::get_node_names_by_type(const std::string &type) {
   return graph_.get_node_names_by_type(type);
 }
 
-std::vector<Edge>
-GraphNode::get_edges_from_node(const std::string & node_src_id, const std::string & type)
-{
+std::vector<Edge> GraphNode::get_edges_from_node(
+    const std::string &node_src_id, const std::string &type) {
   return graph_.get_edges_from_node(node_src_id, type);
 }
 
-std::vector<Edge>
-GraphNode::get_edges_from_node_by_data(
-  const std::string & node_src_id,
-  const std::string & expr,
-  const std::string & type)
-{
+std::vector<Edge> GraphNode::get_edges_from_node_by_data(
+    const std::string &node_src_id, const std::string &expr, const std::string &type) {
   return graph_.get_edges_from_node_by_data(node_src_id, expr, type);
 }
 
-std::vector<Edge>
-GraphNode::get_edges_by_data(const std::string & expr, const std::string & type)
-{
+std::vector<Edge> GraphNode::get_edges_by_data(const std::string &expr, const std::string &type) {
   return graph_.get_edges_by_data(expr, type);
 }
 

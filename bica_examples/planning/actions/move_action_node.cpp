@@ -14,30 +14,24 @@
 
 #include <math.h>
 
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
-
-#include "plansys2_msgs/action/execute_action.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
-#include "nav2_msgs/action/navigate_to_pose.hpp"
-#include "lifecycle_msgs/msg/transition.hpp"
-
-#include "plansys2_executor/ActionExecutorClient.hpp"
 
 #include "bica/Component.hpp"
-
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "lifecycle_msgs/msg/transition.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
+#include "plansys2_executor/ActionExecutorClient.hpp"
+#include "plansys2_msgs/action/execute_action.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
-class MoveAction : public plansys2::ActionExecutorClient
-{
+class MoveAction : public plansys2::ActionExecutorClient {
 public:
-  MoveAction()
-  : plansys2::ActionExecutorClient("move")
-  {
+  MoveAction() : plansys2::ActionExecutorClient("move") {
     geometry_msgs::msg::PoseStamped wp;
     wp.header.frame_id = "/map";
     wp.pose.position.x = 0.0;
@@ -67,34 +61,29 @@ public:
 
     using namespace std::placeholders;
     pos_sub_ = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-      "/amcl_pose",
-      10,
-      std::bind(&MoveAction::current_pos_callback, this, _1));
+        "/amcl_pose", 10, std::bind(&MoveAction::current_pos_callback, this, _1));
 
     bica_component_ = std::make_shared<bica::Component>("bica_move", 1);
     bica_component_->addDependency("A");
   }
 
-  void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
-  {
+  void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
     current_pos_ = msg->pose.pose;
   }
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State & previous_state)
-  {
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
+      const rclcpp_lifecycle::State& previous_state) {
     getFeedback()->progress = 0.0;
 
-    navigation_action_client_ =
-      rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(shared_from_this(),
-        "NavigateToPose");
+    navigation_action_client_ = rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(
+        shared_from_this(), "NavigateToPose");
 
     bool is_action_server_ready = false;
     do {
       RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
 
       is_action_server_ready =
-        navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
+          navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
     } while (!is_action_server_ready);
 
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
@@ -108,11 +97,11 @@ public:
     dist_to_move = getDistance(goal_pos_.pose, current_pos_);
 
     auto send_goal_options =
-      rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
-    send_goal_options.result_callback = [this](auto) {getFeedback()->progress = 100.0;};
+        rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
+    send_goal_options.result_callback = [this](auto) { getFeedback()->progress = 100.0; };
 
     future_navigation_goal_handle_ =
-      navigation_action_client_->async_send_goal(navigation_goal_, send_goal_options);
+        navigation_action_client_->async_send_goal(navigation_goal_, send_goal_options);
 
     navigation_goal_handle_ = future_navigation_goal_handle_.get();
     if (!navigation_goal_handle_) {
@@ -125,30 +114,27 @@ public:
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State & previous_state)
-  {
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_deactivate(
+      const rclcpp_lifecycle::State& previous_state) {
     bica_component_->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE);
 
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
 
 private:
-  double getDistance(const geometry_msgs::msg::Pose & pos1, const geometry_msgs::msg::Pose & pos2)
-  {
-    return sqrt((pos1.position.x - pos2.position.x) * (pos1.position.x - pos2.position.x) +
-             (pos1.position.y - pos2.position.y) * (pos1.position.y - pos2.position.y));
+  double getDistance(const geometry_msgs::msg::Pose& pos1, const geometry_msgs::msg::Pose& pos2) {
+    return sqrt(
+        (pos1.position.x - pos2.position.x) * (pos1.position.x - pos2.position.x) +
+        (pos1.position.y - pos2.position.y) * (pos1.position.y - pos2.position.y));
   }
 
-  void actionStep()
-  {
+  void actionStep() {
     // Nothing to do. Action is send and check is done in isFinished
     auto status = navigation_goal_handle_->get_status();
 
     // Check if the goal is still executing
     if (status == action_msgs::msg::GoalStatus::STATUS_ACCEPTED ||
-      status == action_msgs::msg::GoalStatus::STATUS_EXECUTING)
-    {
+        status == action_msgs::msg::GoalStatus::STATUS_EXECUTING) {
       RCLCPP_DEBUG(get_logger(), "Executing move action");
     } else {
       RCLCPP_WARN(get_logger(), "Error Executing");
@@ -162,8 +148,7 @@ private:
     rclcpp::spin_some(bica_component_->get_node_base_interface());
   }
 
-  bool isFinished()
-  {
+  bool isFinished() {
     if (getFeedback()->progress >= 100.0) {
       // Check result of navigation
       return true;
@@ -174,8 +159,7 @@ private:
 
   std::map<std::string, geometry_msgs::msg::PoseStamped> waypoints_;
 
-  using NavigationGoalHandle =
-    rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>;
+  using NavigationGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>;
 
   rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr navigation_action_client_;
   std::shared_future<NavigationGoalHandle::SharedPtr> future_navigation_goal_handle_;
@@ -191,8 +175,7 @@ private:
   std::shared_ptr<bica::Component> bica_component_;
 };
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<MoveAction>();
 

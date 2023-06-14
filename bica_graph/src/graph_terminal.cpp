@@ -12,22 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include <tf2/convert.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <vector>
 #include <list>
+#include <memory>
 #include <random>
 #include <string>
-#include <memory>
-
-#include "rclcpp/rclcpp.hpp"
+#include <vector>
 
 #include "bica_graph/TypedGraphNode.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-std::vector<std::string> tokenize(const std::string & text)
-{
+std::vector<std::string> tokenize(const std::string& text) {
   std::vector<std::string> ret;
   size_t start = 0, end = 0;
 
@@ -39,17 +36,13 @@ std::vector<std::string> tokenize(const std::string & text)
   return ret;
 }
 
-
-class GraphTerminal
-{
+class GraphTerminal {
 public:
-  explicit GraphTerminal(const std::string & id)
-  {
+  explicit GraphTerminal(const std::string& id) {
     graph_ = std::make_shared<bica_graph::TypedGraphNode>(id);
   }
 
-  void run_console()
-  {
+  void run_console() {
     std::string line;
     bool success = true;
 
@@ -67,21 +60,19 @@ public:
     std::cout << "Finishing..." << std::endl;
   }
 
-  void list_nodes(void)
-  {
+  void list_nodes(void) {
     auto nodes = graph_->get_nodes();
 
     std::cout << "total nodes: " << graph_->get_num_nodes() << std::endl;
-    for (const auto & node : nodes) {
+    for (const auto& node : nodes) {
       std::cout << "\t" << node.second.to_string() << std::endl;
     }
   }
 
-  void list_edges(void)
-  {
+  void list_edges(void) {
     std::cout << "total string edges: " << graph_->get_num_edges() << std::endl;
-    for (const auto & pair : graph_->get_edges()) {
-      for (const auto & edge : pair.second) {
+    for (const auto& pair : graph_->get_edges()) {
+      for (const auto& edge : pair.second) {
         if (edge.type != "tf") {
           std::cout << "\t" << edge.to_string() << std::endl;
         } else {
@@ -94,10 +85,10 @@ public:
             double roll, pitch, yaw;
             tf2::Matrix3x3(tf.getRotation()).getRPY(roll, pitch, yaw);
 
-            std::cout << "\tedge::" << edge.source << "->" << edge.target + "::(" <<
-              tf.getOrigin().x() << ", " << tf.getOrigin().y() << ", " <<
-              tf.getOrigin().z() << ") [" << roll << ", " << pitch << ", " <<
-              yaw << "]::tf" << std::endl;
+            std::cout << "\tedge::" << edge.source << "->" << edge.target + "::("
+                      << tf.getOrigin().x() << ", " << tf.getOrigin().y() << ", "
+                      << tf.getOrigin().z() << ") [" << roll << ", " << pitch << ", " << yaw
+                      << "]::tf" << std::endl;
 
           } else {
             std::cout << "\t" << edge.to_string() << std::endl;
@@ -107,8 +98,7 @@ public:
     }
   }
 
-  void process_list(const std::vector<std::string> & command)
-  {
+  void process_list(const std::vector<std::string>& command) {
     if (command.size() == 1) {
       list_nodes();
       list_edges();
@@ -121,8 +111,7 @@ public:
     }
   }
 
-  void process_add(const std::vector<std::string> & command)
-  {
+  void process_add(const std::vector<std::string>& command) {
     if (command.size() > 1) {
       if (command[1] == "node") {
         if (command.size() != 4) {
@@ -132,22 +121,22 @@ public:
         }
       } else if (command[1] == "edge") {
         if ((command.size() == 2) ||
-          ((command.size() > 2) &&
-          ((command[2] != "symbolic") && (command[2] != "tf"))))
-        {
+            ((command.size() > 2) && ((command[2] != "symbolic") && (command[2] != "tf")))) {
           std::cout << "\t\tadd edge [symbolic|tf] source target data" << std::endl;
         } else if (command[2] == "symbolic") {
           if (command.size() >= 6) {
             std::string data = command[5];
-            for (int i = 6; i < command.size(); i++) {data = data + " " + command[i];}
+            for (int i = 6; i < command.size(); i++) {
+              data = data + " " + command[i];
+            }
             graph_->add_edge(bica_graph::Edge{data, "symbolic", command[3], command[4]});
           } else {
             std::cout << "\t\tadd edge symbolic source target data" << std::endl;
           }
         } else if (command[2] == "tf") {
           if (command.size() != 11) {
-            std::cout << "Please, introduce a correct coordinate in format x  y  z y  p  r: " <<
-              std::endl;
+            std::cout << "Please, introduce a correct coordinate in format x  y  z y  p  r: "
+                      << std::endl;
           } else {
             double x = std::stod(command[5]);
             double y = std::stod(command[6]);
@@ -175,9 +164,7 @@ public:
     }
   }
 
-
-  void process_remove(const std::vector<std::string> & command)
-  {
+  void process_remove(const std::vector<std::string>& command) {
     if (command.size() > 1) {
       if (command[1] == "node") {
         if (command.size() != 3) {
@@ -187,14 +174,14 @@ public:
         }
       } else if (command[1] == "edge") {
         if ((command.size() == 2) ||
-          ((command.size() > 2) &&
-          ((command[2] != "symbolic") && (command[2] != "tf"))))
-        {
+            ((command.size() > 2) && ((command[2] != "symbolic") && (command[2] != "tf")))) {
           std::cout << "\t\tremove edge [symbolic|tf] source target [data]" << std::endl;
         } else if (command[2] == "symbolic") {
           if (command.size() >= 6) {
             std::string data = command[5];
-            for (int i = 6; i < command.size(); i++) {data = data + " " + command[i];}
+            for (int i = 6; i < command.size(); i++) {
+              data = data + " " + command[i];
+            }
             graph_->remove_edge(bica_graph::Edge{data, "symbolic", command[3], command[4]});
           } else {
             std::cout << "\t\tremove edge symbolic source target data" << std::endl;
@@ -216,8 +203,7 @@ public:
     }
   }
 
-  void process_command(const std::string & command)
-  {
+  void process_command(const std::string& command) {
     std::vector<std::string> tokens = tokenize(command);
 
     if (tokens.empty()) {
@@ -239,8 +225,7 @@ private:
   std::shared_ptr<bica_graph::TypedGraphNode> graph_;
 };
 
-int main(int argc, char * argv[])
-{
+int main(int argc, char* argv[]) {
   rclcpp::init(argc, argv);
 
   std::random_device rd;

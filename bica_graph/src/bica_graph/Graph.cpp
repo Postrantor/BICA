@@ -12,29 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <list>
-#include <map>
-#include <algorithm>
-#include <sstream>
-#include <regex>
-#include <vector>
-
 #include "bica_graph/Graph.hpp"
 
-namespace bica_graph
-{
+#include <algorithm>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
-Graph::Graph()
-{
-}
+namespace bica_graph {
 
-bool
-Graph::add_node(const Node & node)
-{
+Graph::Graph() {}
+
+bool Graph::add_node(const Node &node) {
   if (nodes_.find(node.name) != nodes_.end()) {
     return nodes_[node.name].type == node.type;
   } else {
@@ -43,9 +38,7 @@ Graph::add_node(const Node & node)
   }
 }
 
-bool
-Graph::remove_node(const std::string node)
-{
+bool Graph::remove_node(const std::string node) {
   if (nodes_.find(node) != nodes_.end()) {
     nodes_.erase(node);
 
@@ -63,15 +56,9 @@ Graph::remove_node(const std::string node)
   }
 }
 
-bool
-Graph::exist_node(const std::string node)
-{
-  return nodes_.find(node) != nodes_.end();
-}
+bool Graph::exist_node(const std::string node) { return nodes_.find(node) != nodes_.end(); }
 
-boost::optional<Node>
-Graph::get_node(const std::string node)
-{
+boost::optional<Node> Graph::get_node(const std::string node) {
   if (exist_node(node)) {
     return nodes_[node];
   } else {
@@ -79,12 +66,10 @@ Graph::get_node(const std::string node)
   }
 }
 
-bool
-Graph::add_edge(const Edge & edge)
-{
+bool Graph::add_edge(const Edge &edge) {
   if (exist_node(edge.source) && exist_node(edge.target)) {
     if (!exist_edge(edge)) {
-      ConnectionT connection {edge.source, edge.target};
+      ConnectionT connection{edge.source, edge.target};
       edges_[connection].push_back(edge);
     }
     return true;
@@ -93,9 +78,7 @@ Graph::add_edge(const Edge & edge)
   }
 }
 
-bool
-Graph::remove_edge(const Edge & edge)
-{
+bool Graph::remove_edge(const Edge &edge) {
   if (exist_node(edge.source) && exist_node(edge.target) && exist_edge(edge)) {
     auto edges = get_edges(edge.source, edge.target);
 
@@ -114,9 +97,7 @@ Graph::remove_edge(const Edge & edge)
   }
 }
 
-bool
-Graph::exist_edge(const Edge & edge)
-{
+bool Graph::exist_edge(const Edge &edge) {
   if (!exist_node(edge.source) || !exist_node(edge.target)) {
     return false;
   }
@@ -130,10 +111,9 @@ Graph::exist_edge(const Edge & edge)
   }
 }
 
-boost::optional<std::vector<Edge> *>
-Graph::get_edges(const std::string & source, const std::string & target)
-{
-  ConnectionT connection {source, target};
+boost::optional<std::vector<Edge> *> Graph::get_edges(
+    const std::string &source, const std::string &target) {
+  ConnectionT connection{source, target};
   if (exist_node(source) && exist_node(target) && edges_.find(connection) != edges_.end()) {
     return &edges_[connection];
   } else {
@@ -141,19 +121,17 @@ Graph::get_edges(const std::string & source, const std::string & target)
   }
 }
 
-std::string
-Graph::to_string() const
-{
+std::string Graph::to_string() const {
   std::ostringstream graphstr(std::ostringstream::ate);
 
   graphstr << "Nodes: " << nodes_.size() << std::endl;
-  for (const auto & node : nodes_) {
+  for (const auto &node : nodes_) {
     graphstr << node.second.to_string() << std::endl;
   }
 
   graphstr << "Edges: " << get_num_edges() << std::endl;
-  for (const auto & nodes_pair : edges_) {
-    for (const auto & edge : nodes_pair.second) {
+  for (const auto &nodes_pair : edges_) {
+    for (const auto &edge : nodes_pair.second) {
       graphstr << edge.to_string() << std::endl;
     }
   }
@@ -161,9 +139,7 @@ Graph::to_string() const
   return graphstr.str();
 }
 
-void
-Graph::from_string(const std::string & graph_str)
-{
+void Graph::from_string(const std::string &graph_str) {
   nodes_.clear();
   edges_.clear();
 
@@ -182,25 +158,17 @@ Graph::from_string(const std::string & graph_str)
   }
 }
 
-size_t
-Graph::get_num_edges() const
-{
+size_t Graph::get_num_edges() const {
   size_t counter = 0;
-  for (const auto & nodes_pair : edges_) {
+  for (const auto &nodes_pair : edges_) {
     counter += nodes_pair.second.size();
   }
   return counter;
 }
 
-size_t
-Graph::get_num_nodes() const
-{
-  return nodes_.size();
-}
+size_t Graph::get_num_nodes() const { return nodes_.size(); }
 
-std::vector<std::string>
-Graph::get_node_names_by_id(const std::string & expr)
-{
+std::vector<std::string> Graph::get_node_names_by_id(const std::string &expr) {
   std::vector<std::string> ret;
 
   for (auto node : nodes_) {
@@ -212,9 +180,7 @@ Graph::get_node_names_by_id(const std::string & expr)
   return ret;
 }
 
-std::vector<std::string>
-Graph::get_node_names_by_type(const std::string & type)
-{
+std::vector<std::string> Graph::get_node_names_by_type(const std::string &type) {
   std::vector<std::string> ret;
 
   for (auto node : nodes_) {
@@ -226,9 +192,8 @@ Graph::get_node_names_by_type(const std::string & type)
   return ret;
 }
 
-std::vector<Edge>
-Graph::get_edges_from_node(const std::string & node_src_id, const std::string & type)
-{
+std::vector<Edge> Graph::get_edges_from_node(
+    const std::string &node_src_id, const std::string &type) {
   std::vector<Edge> ret;
 
   for (auto pair_nodes : edges_) {
@@ -244,20 +209,15 @@ Graph::get_edges_from_node(const std::string & node_src_id, const std::string & 
   return ret;
 }
 
-std::vector<Edge>
-Graph::get_edges_from_node_by_data(
-  const std::string & node_src_id,
-  const std::string & expr,
-  const std::string & type)
-{
+std::vector<Edge> Graph::get_edges_from_node_by_data(
+    const std::string &node_src_id, const std::string &expr, const std::string &type) {
   std::vector<Edge> ret;
 
   for (auto pair_nodes : edges_) {
     if (pair_nodes.first.first == node_src_id) {
       for (auto edge : pair_nodes.second) {
         if (((edge.type == type) || (type == "")) &&
-          std::regex_match(edge.content, std::regex(expr)))
-        {
+            std::regex_match(edge.content, std::regex(expr))) {
           ret.push_back(edge);
         }
       }
@@ -267,16 +227,13 @@ Graph::get_edges_from_node_by_data(
   return ret;
 }
 
-std::vector<Edge>
-Graph::get_edges_by_data(const std::string & expr, const std::string & type)
-{
+std::vector<Edge> Graph::get_edges_by_data(const std::string &expr, const std::string &type) {
   std::vector<Edge> ret;
 
   for (auto pair_nodes : edges_) {
     for (auto edge : pair_nodes.second) {
       if (((edge.type == type) || (type == "")) &&
-        std::regex_match(edge.content, std::regex(expr)))
-      {
+          std::regex_match(edge.content, std::regex(expr))) {
         ret.push_back(edge);
       }
     }

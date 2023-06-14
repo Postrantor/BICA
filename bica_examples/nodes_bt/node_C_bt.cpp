@@ -15,28 +15,22 @@
 #include <memory>
 #include <string>
 
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "behaviortree_cpp_v3/behavior_tree.h"
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "behaviortree_cpp_v3/utils/shared_library.h"
-
-#include "bica_behavior_tree/action/activation_action.hpp"
-#include "bica_behavior_tree/BicaTree.hpp"
-
 #include "bica/Component.hpp"
+#include "bica_behavior_tree/BicaTree.hpp"
+#include "bica_behavior_tree/action/activation_action.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "ament_index_cpp/get_package_share_directory.hpp"
 
-class Phase1C : public bica_behavior_tree::ActivationActionNode
-{
+class Phase1C : public bica_behavior_tree::ActivationActionNode {
 public:
-  explicit Phase1C(const std::string & name)
-  : bica_behavior_tree::ActivationActionNode(name), counter_(0)
-  {
-  }
+  explicit Phase1C(const std::string& name)
+      : bica_behavior_tree::ActivationActionNode(name), counter_(0) {}
 
   // You must override the virtual function tick()
-  BT::NodeStatus tick() override
-  {
+  BT::NodeStatus tick() override {
     std::cerr << "CompC::Phase1C tick() " << counter_ << std::endl;
 
     if (counter_++ < 2) {
@@ -50,17 +44,13 @@ private:
   int counter_;
 };
 
-class Phase2C : public bica_behavior_tree::ActivationActionNode
-{
+class Phase2C : public bica_behavior_tree::ActivationActionNode {
 public:
-  explicit Phase2C(const std::string & name)
-  : bica_behavior_tree::ActivationActionNode(name), counter_(0)
-  {
-  }
+  explicit Phase2C(const std::string& name)
+      : bica_behavior_tree::ActivationActionNode(name), counter_(0) {}
 
   // You must override the virtual function tick()
-  BT::NodeStatus tick() override
-  {
+  BT::NodeStatus tick() override {
     std::cerr << "CompC::Phase2C tick() " << counter_ << std::endl;
 
     if (counter_++ < 2) {
@@ -74,21 +64,16 @@ private:
   int counter_;
 };
 
-
-class CompC : public bica::Component
-{
+class CompC : public bica::Component {
 public:
-  CompC()
-  : bica::Component("C", 10), finished_(false)
-  {
+  CompC() : bica::Component("C", 10), finished_(false) {
     factory_.registerNodeType<Phase1C>("Phase1C");
     factory_.registerNodeType<Phase2C>("Phase2C");
     factory_.registerFromPlugin(BT::SharedLibrary().getOSName("activation_sequence_bt_node"));
     factory_.registerFromPlugin(BT::SharedLibrary().getOSName("activation_action_bt_node"));
   }
 
-  void on_activate()
-  {
+  void on_activate() {
     std::string pkgpath = ament_index_cpp::get_package_share_directory("bica_examples");
     std::string xml_file = pkgpath + "/nodes_bt/node_C_tree.xml";
 
@@ -97,8 +82,7 @@ public:
     tree_.configureActivations<Phase2C>("Phase2C", this, {});
   }
 
-  void step()
-  {
+  void step() {
     if (!finished_) {
       finished_ = tree_.root_node->executeTick() == BT::NodeStatus::SUCCESS;
     } else {
@@ -113,9 +97,7 @@ private:
   bool finished_;
 };
 
-
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto component = std::make_shared<CompC>();

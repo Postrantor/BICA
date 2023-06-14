@@ -12,53 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include <tf2/LinearMath/Transform.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2/convert.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <geometry_msgs/msg/transform_stamped.hpp>
-
-#include <iostream>
-#include <memory>
-#include <string>
-#include <utility>
-#include <list>
-#include <map>
-#include <algorithm>
-#include <sstream>
-
 #include "bica_graph/TypedGraphNode.hpp"
 
-namespace bica_graph
-{
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/convert.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 
-TypedGraphNode::TypedGraphNode(const std::string & provided_node_name)
-: GraphNode(provided_node_name)
-{
+#include <algorithm>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+
+namespace bica_graph {
+
+TypedGraphNode::TypedGraphNode(const std::string& provided_node_name)
+    : GraphNode(provided_node_name) {
   static_tf_broadcaster_ = nullptr;
   tfBuffer_ = nullptr;
   tf_listener_ = nullptr;
   tf_broadcaster_ = nullptr;
 }
 
-void
-TypedGraphNode::init_tf()
-{
-  tf_broadcaster_ =
-    std::make_shared<tf2_ros::TransformBroadcaster>(*node_->shared_from_this());
+void TypedGraphNode::init_tf() {
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*node_->shared_from_this());
   static_tf_broadcaster_ =
-    std::make_shared<tf2_ros::StaticTransformBroadcaster>(*node_->shared_from_this());
+      std::make_shared<tf2_ros::StaticTransformBroadcaster>(*node_->shared_from_this());
   tfBuffer_ = std::make_shared<tf2::BufferCore>();
   tf_listener_ =
-    std::make_shared<tf2_ros::TransformListener>(*tfBuffer_, node_->shared_from_this(), false);
+      std::make_shared<tf2_ros::TransformListener>(*tfBuffer_, node_->shared_from_this(), false);
 }
 
-bool
-TypedGraphNode::add_tf_edge(TFEdge & tfedge, bool static_tf)
-{
+bool TypedGraphNode::add_tf_edge(TFEdge& tfedge, bool static_tf) {
   if (tfBuffer_ == nullptr) {
     init_tf();
   }
@@ -103,9 +95,8 @@ TypedGraphNode::add_tf_edge(TFEdge & tfedge, bool static_tf)
   }
 }
 
-boost::optional<TFEdge>
-TypedGraphNode::get_tf_edge(const std::string & source, const std::string & target)
-{
+boost::optional<TFEdge> TypedGraphNode::get_tf_edge(
+    const std::string& source, const std::string& target) {
   if (tfBuffer_ == nullptr) {
     init_tf();
   }
@@ -120,17 +111,15 @@ TypedGraphNode::get_tf_edge(const std::string & source, const std::string & targ
     tf = tfBuffer_->lookupTransform(source, target, tf2::TimePointZero);
     tf2::convert(tf, ret.tf_);
     return ret;
-  } catch (std::exception & e) {
-    RCLCPP_WARN(node_->get_logger(),
-      "GraphClient::get_tf_edge Nodes [%s, %s]not connected by TFs",
-      source.c_str(), target.c_str());
+  } catch (std::exception& e) {
+    RCLCPP_WARN(
+        node_->get_logger(), "GraphClient::get_tf_edge Nodes [%s, %s]not connected by TFs",
+        source.c_str(), target.c_str());
     return {};
   }
 }
 
-void
-TypedGraphNode::set_tf_identity(const std::string & frame_id_1, const std::string & frame_id_2)
-{
+void TypedGraphNode::set_tf_identity(const std::string& frame_id_1, const std::string& frame_id_2) {
   geometry_msgs::msg::TransformStamped static_transformStamped;
 
   static_transformStamped.header.stamp = node_->now();
@@ -147,6 +136,5 @@ TypedGraphNode::set_tf_identity(const std::string & frame_id_1, const std::strin
   static_tf_broadcaster_->sendTransform(static_transformStamped);
   rclcpp::spin_some(node_);
 }
-
 
 }  // namespace bica_graph

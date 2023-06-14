@@ -17,24 +17,14 @@
 #include "bica/Component.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-
-class CompD : public bica::Component
-{
+class CompD : public bica::Component {
 public:
-  CompD()
-  : bica::Component("D", 3)
-  {
-  }
+  CompD() : bica::Component("D", 3) {}
 
-  void step()
-  {
-    RCLCPP_INFO(get_logger(), "CompD::step()");
-  }
+  void step() { RCLCPP_INFO(get_logger(), "CompD::step()"); }
 };
 
-
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto component = std::make_shared<CompD>();
